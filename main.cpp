@@ -2,8 +2,9 @@
 
 #define MAX_M 100001
 #define MAX_I
-#define N 501
+#define N 10001
 #define A_IN "/Users/mac/CLionProjects/hashcode2021-pratice/inputs/a.in"
+#define C_IN "/Users/mac/CLionProjects/hashcode2021-pratice/inputs/c.in"
 #define A_OUT "/Users/mac/CLionProjects/hashcode2021-pratice/outputs/a.out"
 #define B_IN "/Users/mac/CLionProjects/hashcode2021-pratice/inputs/b.in"
 
@@ -32,7 +33,7 @@ void addIngredientPizza(string ingredient, int pizza) {
 }
 
 void readInput() {
-    freopen(B_IN, "r", stdin);
+    freopen(A_IN, "r", stdin);
     cin >> M >> t2 >> t3 >> t4;
     for (int i = 0; i < M; ++i) {
         int k;
@@ -113,8 +114,20 @@ void solve() {
     int i = allPizzaScore.size() - 1;
     PizzaScore pizzaScore = allPizzaScore[i];
 
+    //t2
+    while (t2 > 0 && i > -1) {
+//        printf("i: %d\n",i);
+        if (pizzaTeam[pizzaScore.p1] == -1 && pizzaTeam[pizzaScore.p2] == -1) {
+            pick(pizzaScore.p1, 2);
+            pick(pizzaScore.p2, 2);
+            t2--;
+        }
+        i -= 1;
+        pizzaScore = allPizzaScore[i];
+    }
 
     //t3
+    i = allPizzaScore.size() - 1;
     while (t3 > 0 && i > -1) {
         if (pizzaTeam[pizzaScore.p1] == -1 && pizzaTeam[pizzaScore.p2] == -1) {
             int p3 = findP3(pizzaScore.p1, pizzaScore.p2);
@@ -129,18 +142,6 @@ void solve() {
         pizzaScore = allPizzaScore[i];
     }
 
-    //t2
-    i = allPizzaScore.size() - 1;
-    while (t2 > 0 && i > -1) {
-//        printf("i: %d\n",i);
-        if (pizzaTeam[pizzaScore.p1] == -1 && pizzaTeam[pizzaScore.p2] == -1) {
-            pick(pizzaScore.p1, 2);
-            pick(pizzaScore.p2, 2);
-            t2--;
-        }
-        i -= 1;
-        pizzaScore = allPizzaScore[i];
-    }
 }
 
 void output() {
@@ -153,7 +154,7 @@ void output() {
         s += pow(getScore(team2[i * 2], team2[i * 2 + 1]), 2);
     }
     for (int i = 0; i < team3.size() / 3; ++i) {
-        printf("%d %d %d %d\n", 2, team3[i * 3], team3[i * 3 + 1], team3[i * 3 + 2]);
+        printf("%d %d %d %d\n", 3, team3[i * 3], team3[i * 3 + 1], team3[i * 3 + 2]);
         s += pow(getScore(team3[i * 3], team3[i * 3 + 1], team3[i * 3 + 2]), 2);
     }
     printf("score: %f\n", s);
