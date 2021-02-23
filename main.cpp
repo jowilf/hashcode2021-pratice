@@ -2,11 +2,13 @@
 
 #define MAX_M 100001
 #define MAX_I
-#define N 500
+#define N 10000
 #define A_IN "/Users/mac/CLionProjects/hashcode2021-pratice/inputs/a.in"
 #define A_OUT "/Users/mac/CLionProjects/hashcode2021-pratice/outputs/a.out"
 #define B_IN "/Users/mac/CLionProjects/hashcode2021-pratice/inputs/b.in"
 #define C_IN "/Users/mac/CLionProjects/hashcode2021-pratice/inputs/c_many_ingredients.in"
+#define D_IN "/Users/mac/CLionProjects/hashcode2021-pratice/inputs/d_many_pizzas.in"
+#define E_IN "/Users/mac/CLionProjects/hashcode2021-pratice/inputs/e_many_teams.in"
 
 struct PizzaScore {
     int p1, p2, s;
@@ -35,7 +37,7 @@ void addIngredientPizza(string ingredient, int pizza) {
 }
 
 void readInput() {
-    freopen(B_IN, "r", stdin);
+    freopen(C_IN, "r", stdin);
     cin >> M >> t2 >> t3 >> t4;
     for (int i = 0; i < M; ++i) {
         int k;
@@ -54,14 +56,33 @@ void readInput() {
     printf("input readed\n");
 }
 
+int getScore(vector<int> pIds, int p) {
+    if (pIds.size() == 0) return pizzas[p].size();
+    pIds.push_back(p);
+    set <string> st;
+    for (auto id: pIds)
+        for (string x:pizzas[id])
+            st.insert(x);
+    return st.size();
+}
 
-int findPizzaWithBestIngredient(vector<int> &notIn) {
-    int p = -1, i = 0;
-    while (p == -1 && i < M) {
-        if (pizzaTeam[sortedPizzas[i]] == -1 && (find(notIn.begin(), notIn.end(), sortedPizzas[i]) == notIn.end()))
-            p = sortedPizzas[i];
-        i += 1;
+int findPizzaWithBestIngredient(vector<int> notIn) {
+    int p = -1, ms = -1;
+    int depth = 0;
+    for (int i = 0; i < M; ++i) {
+        if (pizzaTeam[sortedPizzas[i]] == -1 && (find(notIn.begin(), notIn.end(), sortedPizzas[i]) == notIn.end())) {
+            int s = getScore(notIn, sortedPizzas[i]);
+            if (s > ms) {
+                if (notIn.size() == 0) return sortedPizzas[i];
+                p = sortedPizzas[i];
+                ms = max(ms, s);
+                if (depth == 0) return p;
+            }
+            if (p != -1)
+                depth--;
+        }
     }
+//    printf("return p %d\n", p);
     return p;
 }
 
@@ -128,6 +149,7 @@ void pick(int p, int team) {
         team3.push_back(p);
     else if (team == 4)
         team4.push_back(p);
+//    printf("pick %d --> %d\n", p, team);
 }
 
 int findP3(int p1, int p2) {
@@ -161,97 +183,111 @@ int findP4(int p1, int p2, int p3) {
 }
 
 void take4() {
-    int i = allPizzaScore.size() - 1;
-    PizzaScore pizzaScore = allPizzaScore[i];
-    while (t4 > 0 && i > -1 && (M - pickedCount) >= 4) {
-        if (pizzaTeam[pizzaScore.p1] == -1 && pizzaTeam[pizzaScore.p2] == -1) {
-            vector<int> notIn2{pizzaScore.p1, pizzaScore.p2};
-            int p3 = findPizzaWithBestIngredient(notIn2);
-            vector<int> notIn3{pizzaScore.p1, pizzaScore.p2, p3};
-            int p4 = p3 == -1 ? -1 : findPizzaWithBestIngredient(notIn3);
-            if (p3 != -1 && p4 != -1) {
-                pick(pizzaScore.p1, 4);
-                pick(pizzaScore.p2, 4);
-                pick(p3, 4);
-                pick(p4, 4);
-                t4--;
-            }
+    while (t4 > 0 && (M - pickedCount) >= 4) {
+        int p1 = findPizzaWithBestIngredient({});
+        int p2 = findPizzaWithBestIngredient({p1});
+        int p3 = findPizzaWithBestIngredient({p1, p2});
+        int p4 = findPizzaWithBestIngredient({p1, p2, p3});
+        if (p1 != -1 && p2 != -1 && p3 != -1 && p4 != -1) {
+            pick(p1, 4);
+            pick(p2, 4);
+            pick(p3, 4);
+            pick(p4, 4);
+            t4--;
         }
-        i -= 1;
-        pizzaScore = allPizzaScore[i];
     }
-    printf("end take4\n");
+    printf("end take4 - (%d)\n", t4);
 }
 
 void take3() {
-    int i = allPizzaScore.size() - 1;
-    PizzaScore pizzaScore = allPizzaScore[i];
-    while (t3 > 0 && i > -1 && (M - pickedCount) >= 3) {
-        if (pizzaTeam[pizzaScore.p1] == -1 && pizzaTeam[pizzaScore.p2] == -1) {
-            vector<int> notIn2{pizzaScore.p1, pizzaScore.p2};
-            int p3 = findPizzaWithBestIngredient(notIn2);
-            if (p3 != -1) {
-                pick(pizzaScore.p1, 3);
-                pick(pizzaScore.p2, 3);
-                pick(p3, 3);
-                t3--;
-            }
+    while (t3 > 0 && (M - pickedCount) >= 3) {
+        int p1 = findPizzaWithBestIngredient({});
+        int p2 = findPizzaWithBestIngredient({p1});
+        int p3 = findPizzaWithBestIngredient({p1, p2});
+        if (p1 != -1 && p2 != -1 && p3 != -1) {
+            pick(p1, 3);
+            pick(p2, 3);
+            pick(p3, 3);
+            t3--;
         }
-        i -= 1;
-        pizzaScore = allPizzaScore[i];
     }
-    printf("end take3\n");
+    printf("end take3 - (%d)\n", t3);
 }
 
 void take2() {
-    int i = allPizzaScore.size() - 1;
-    PizzaScore pizzaScore = allPizzaScore[i];
-    while (t2 > 0 && i > -1) {
-        //        printf("i: %d\n",i);
-        if (pizzaTeam[pizzaScore.p1] == -1 && pizzaTeam[pizzaScore.p2] == -1) {
-            pick(pizzaScore.p1, 2);
-            pick(pizzaScore.p2, 2);
+    while (t2 > 0 && (M - pickedCount) >= 2) {
+        int p1 = findPizzaWithBestIngredient({});
+        int p2 = findPizzaWithBestIngredient({p1});
+        if (p1 != -1 && p2 != -1) {
+            pick(p1, 2);
+            pick(p2, 2);
             t2--;
         }
-        i -= 1;
-        pizzaScore = allPizzaScore[i];
     }
-    printf("end take2\n");
+    printf("end take2 - (%d)\n", t2);
+}
+
+void optimizeTake2() {
+    vector<int> leftPizzas;
+    for (int i = 0; i < M; ++i) {
+        if (pizzaTeam[i] == -1)leftPizzas.push_back(i);
+    }
+    printf("leftPizzas - (%d)\n", (int) leftPizzas.size());
+    sort(leftPizzas.begin(), leftPizzas.end(), [](int i, int j) { return pizzas[i].size() > pizzas[j].size(); });
+    int Ml = 500;
+    for (int ii = 0; ii < Ml - 1; ++ii) {
+        for (int jj = ii + 1; jj < Ml; ++jj) {
+            int i = leftPizzas[ii], j = leftPizzas[jj];
+            int s = getScore(i, j);
+            pizzaScores[i][j] = s;
+            pizzaScores[j][i] = s;
+            allPizzaScore.push_back(PizzaScore(i, j, s));
+//            printf("allPizzascore - (%d)\n", (int) allPizzaScore.size());
+        }
+    }
+    sort(allPizzaScore.begin(), allPizzaScore.end(), [](PizzaScore p1, PizzaScore p2) { return p1.s < p2.s; });
+    printf("allPizzascore - (%d)\n", (int) allPizzaScore.size());
+    if (allPizzaScore.size() > 0)
+        take2();
 }
 
 void solve() {
-    sort(allPizzaScore.begin(), allPizzaScore.end(), [](PizzaScore p1, PizzaScore p2) { return p1.s < p2.s; });
-    sort(sortedPizzas.begin(), sortedPizzas.end(), [](int i, int j) { return pizzas[i].size() < pizzas[j].size(); });
-    take3();
+    sort(sortedPizzas.begin(), sortedPizzas.end(), [](int i, int j) { return pizzas[i].size() > pizzas[j].size(); });
+//    optimizeTake2();
     take4();
+    take3();
     take2();
 }
 
 void output() {
     FILE *fp = fopen(A_OUT, "w");
 //    freopen(A_OUT, "w", stdout);
-    double s = 0;
+    double s = 0, s2 = 0, s3 = 0, s4 = 0;
     int d = (int) (team2.size() / 2 + team3.size() / 3 + team4.size() / 4);
     fprintf(fp, "%d\n", d);
     for (int i = 0; i < team2.size() / 2; ++i) {
         fprintf(fp, "%d %d %d\n", 2, team2[i * 2], team2[i * 2 + 1]);
-        s += pow(getScore(team2[i * 2], team2[i * 2 + 1]), 2);
+        s2 += pow(getScore(team2[i * 2], team2[i * 2 + 1]), 2);
     }
     for (int i = 0; i < team3.size() / 3; ++i) {
         fprintf(fp, "%d %d %d %d\n", 3, team3[i * 3], team3[i * 3 + 1], team3[i * 3 + 2]);
-        s += pow(getScore(team3[i * 3], team3[i * 3 + 1], team3[i * 3 + 2]), 2);
+        s3 += pow(getScore(team3[i * 3], team3[i * 3 + 1], team3[i * 3 + 2]), 2);
     }
     for (int i = 0; i < team4.size() / 4; ++i) {
         fprintf(fp, "%d %d %d %d %d\n", 4, team4[i * 4], team4[i * 4 + 1], team4[i * 4 + 2], team4[i * 4 + 3]);
-        s += pow(getScore(team4[i * 4], team4[i * 4 + 1], team4[i * 4 + 2], team4[i * 4 + 3]), 2);
+        s4 += pow(getScore(team4[i * 4], team4[i * 4 + 1], team4[i * 4 + 2], team4[i * 4 + 3]), 2);
     }
+    s = s2 + s3 + s4;
+    printf("score t2: %.0f - reste: %d\n", s2, t2);
+    printf("score t3: %.0f - reste: %d\n", s3, t3);
+    printf("score t4: %.0f - reste: %d\n", s4, t4);
     printf("score: %f - reste: %d\n", s, M - pickedCount);
 }
 
 int main() {
     memset(pizzaTeam, -1, sizeof pizzaTeam);
     readInput();
-    computeScoreArray();
+    //computeScoreArray();
     solve();
     output();
 
